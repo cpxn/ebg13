@@ -4,28 +4,69 @@
 #cpxn - 25/04/15
 
 import sys
-import codec
+import codecs
 import argparse
 
+__author__ = "Capital Seven"
+__version_info__ = ('0','1','0')
+__version__ = '.'.join(__version_info__)
+
 try:
-    #create a new ArgumentParser for commandliine options
-    parser = argparse.ArgumentParser(description="Encode text with rot13 cipher.\n"
-                                     "If no files specified read from stdin until EOF and print to stdout",
-                                     formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'),
-                        default=sys.stdin, help="read from input file (default stdin)")
-    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'),
-                        default=sys.stdout, help="print to output file (default stdout)")
     
+    #create a new ArgumentParser for commandliine options
+    parser = argparse.ArgumentParser(prog="ebg",description="Encode text with rot13 cipher.\n"
+                                     "If no FILEs specified read from stdin until EOF and print to stdout",
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-v","--version", action="version", version="%(prog)s "+__version__)
+    parser.add_argument("-t", "--text", default="", help="specify TEXT as input instead of a FILE")
+    parser.add_argument("FILE", nargs="*",
+                        default=[], help="specify an input or output FILE\n"
+                        "(first input, then output FILEs...)\n"
+                        "if no input file - can be used to read from stdin")
+
     #parse commandline args
     args = parser.parse_args()
-
-    #read from specified infile, encode with rot13, and print to outfile
-    input = args.infile.read()
-    output = codecs.encode(input,"rot13")
-    args.outfile.write(output)
+    
+    #read from the text specified as an argument
+    if args.text!="":
+        text = args.text
+        
+        output = []
+        if len(args.FILE)==0:
+            output=[sys.stdout]
+            
+        for out in args.FILE[:]:
+            if out=="-":
+                output.append(sys.stdout)
+            else:
+                output.append( open(out, "w") )
+    else:
+    #read from the specified file, or stdin
+        input = sys.stdin # default
+        if len(args.FILE)>0:
+            if args.FILE[0]!="-":
+                input = open(args.FILE[0], "r")
+        
+        output = []
+        if len(args.FILE)<1:
+            output=[sys.stdout]
+            
+        for out in args.FILE[1:]:
+            if out=="-":
+                output.append(sys.stdout)
+            else:
+                output.append(open(out, "w"))
+                
+        text = input.read()
+        
+    #encode the text with the rot13 cipher
+    encode = codecs.encode(text, "rot13")
+    
+    #write the encoded text to each output
+    for out in output:
+        out.write(encode)
 
 except KeyboardInterrupt as err:
     #drop out if we receive a KeyboardInterruptSignal
     print ( "KeyboardInterrupt" )
-    
+
