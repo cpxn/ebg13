@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+#ebg13 - simple rot13 encoder for the commandline
+#cpxn - 25/04/15
+
+import sys
+import codec
+import argparse
+
+try:
+    #create a new ArgumentParser for commandliine options
+    parser = argparse.ArgumentParser(description="Encode text with rot13 cipher.\n"
+                                     "If no files specified read from stdin until EOF and print to stdout",
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('infile', nargs='?', type=argparse.FileType('r'),
+                        default=sys.stdin, help="read from input file (default stdin)")
+    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'),
+                        default=sys.stdout, help="print to output file (default stdout)")
+    
+    #parse commandline args
+    args = parser.parse_args()
+
+    #read from specified infile, encode with rot13, and print to outfile
+    input = args.infile.read()
+    output = codecs.encode(input,"rot13")
+    args.outfile.write(output)
+
+except KeyboardInterrupt as err:
+    #drop out if we receive a KeyboardInterruptSignal
+    print ( "KeyboardInterrupt" )
+    
